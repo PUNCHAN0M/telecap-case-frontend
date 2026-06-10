@@ -402,3 +402,4 @@ src/migrations/*
 data-source.ts
 pgadmin-servers.json
 
+dist
