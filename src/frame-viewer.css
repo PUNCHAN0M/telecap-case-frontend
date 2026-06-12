@@ -1,0 +1,84 @@
+/* Frame Viewer Global Styles */
+
+.frame-viewer {
+  --timeline-bg: #080808;
+  --timeline-track: #1a1a1a;
+  --timeline-grid: #222;
+  --timeline-grid-major: #444;
+  --playhead: #ff4444;
+  --controls-bg: #111;
+  --controls-border: #222;
+  --text-primary: #fff;
+  --text-secondary: #888;
+  --text-muted: #555;
+  --button-bg: #2a2a2a;
+  --button-active: #ff4444;
+}
+
+/* Range input styling */
+.frame-viewer input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.frame-viewer input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px;
+  background: #333;
+  border-radius: 2px;
+}
+
+.frame-viewer input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  background: #ff4444;
+  border-radius: 50%;
+  margin-top: -4px;
+  border: 2px solid #fff;
+}
+
+.frame-viewer input[type="range"]::-moz-range-track {
+  height: 4px;
+  background: #333;
+  border-radius: 2px;
+}
+
+.frame-viewer input[type="range"]::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  background: #ff4444;
+  border-radius: 50%;
+  border: 2px solid #fff;
+}
+
+/* Fullscreen styles */
+.frame-viewer:fullscreen {
+  width: 100vw;
+  height: 100vh;
+}
+
+.frame-viewer:fullscreen video {
+  max-height: calc(100vh - 160px);
+}
+
+/* Scrollbar styling for any scrollable areas */
+.frame-viewer ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.frame-viewer ::-webkit-scrollbar-track {
+  background: #111;
+}
+
+.frame-viewer ::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 3px;
+}
+
+.frame-viewer ::-webkit-scrollbar-thumb:hover {
+  background: #444;
+}

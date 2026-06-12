@@ -1,6 +1,8 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
-import type { LocalChunk, SavedSession } from './types';
+import type { LocalChunk, SavedSession, VideoListItem } from './types';
 import { useChunkUpload } from './useChunkUpload';
+import { getVideoList } from './api';
+import { FrameViewer } from './FrameViewer';
 import { formatBytes, formatSeconds, percent } from './utils';
 
 const durationOptions = [
@@ -96,12 +98,121 @@ function ChunkTable({ chunks }: { chunks: LocalChunk[] }) {
   );
 }
 
+// ── Video List Component ──
+function VideoListPanel({
+  videos,
+  selectedId,
+  onSelect,
+  onRefresh,
+}: {
+  videos: VideoListItem[];
+  selectedId: string | null;
+  onSelect: (id: string) => void;
+  onRefresh: () => void;
+}) {
+  const statusPill = (status: string) => {
+    const map: Record<string, string> = {
+      pending: 'pending',
+      uploading: 'uploaded',
+      processing: 'processing',
+      completed: 'done',
+      error: 'failed',
+    };
+    return map[status] || 'pending';
+  };
+
+  return (
+    <section className="panel" style={{ marginBottom: 18 }}>
+      <div className="sectionHeader">
+        <div>
+          <div className="eyebrow">Video Library</div>
+          <h2>Select video to view</h2>
+        </div>
+        <button className="secondary" onClick={onRefresh}>
+          Refresh list
+        </button>
+      </div>
+      {videos.length === 0 ? (
+        <div className="empty">No videos found. Upload one first.</div>
+      ) : (
+        <div className="tableWrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Video</th>
+                <th>Status</th>
+                <th>Chunks</th>
+                <th>HLS</th>
+                <th>Created</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {videos.map((v) => (
+                <tr
+                  key={v.id}
+                  style={selectedId === v.id ? { background: '#e8f4f8' } : undefined}
+                >
+                  <td>
+                    <div style={{ fontWeight: 700 }}>{v.filename || 'Untitled'}</div>
+                    <div className="mono muted" style={{ fontSize: 11 }}>
+                      {v.id}
+                    </div>
+                  </td>
+                  <td>
+                    <span className={`pill ${statusPill(v.status)}`}>{v.status}</span>
+                  </td>
+                  <td>
+                    {v.completedChunks}/{v.totalChunks}
+                  </td>
+                  <td>{v.hlsReady ? '✅' : '⏳'}</td>
+                  <td className="muted">
+                    {new Date(v.createdAt).toLocaleString()}
+                  </td>
+                  <td>
+                    <button
+                      className={selectedId === v.id ? 'danger' : 'secondary'}
+                      style={{ minHeight: 32, padding: '0 12px', fontSize: 12 }}
+                      onClick={() => onSelect(selectedId === v.id ? '' : v.id)}
+                    >
+                      {selectedId === v.id ? 'Close viewer' : 'View frames'}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
+  );
+}
+
 export default function App() {
   const upload = useChunkUpload();
   const [caseId, setCaseId] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [concurrency, setConcurrency] = useState(3);
+
+  // ── Video list state ──
+  const [videos, setVideos] = useState<VideoListItem[]>([]);
+  const [selectedVideoId, setSelectedVideoId] = useState('');
+  const [listError, setListError] = useState<string | null>(null);
+
+  const fetchVideoList = async () => {
+    try {
+      setListError(null);
+      const data = await getVideoList();
+      setVideos(data);
+    } catch (err) {
+      setListError(err instanceof Error ? err.message : 'Failed to load video list');
+    }
+  };
+
+  useEffect(() => {
+    fetchVideoList();
+  }, []);
 
   useEffect(() => {
     if (upload.caseId && !caseId) {
@@ -110,7 +221,6 @@ export default function App() {
   }, [caseId, upload.caseId]);
 
   const canStart = Boolean(caseId && file && !['splitting', 'initiating', 'uploading'].includes(upload.phase));
-  // ✅ เปิด resume จากทุก state ที่ไม่ใช่กำลังทำงานอยู่
   const canResume = Boolean(
     upload.videoId && !['splitting', 'initiating', 'uploading', 'idle'].includes(upload.phase)
   );
@@ -143,6 +253,64 @@ export default function App() {
       </header>
 
       <SessionCard session={upload.savedSession} onRestore={handleRestore} />
+
+      {/* ── Video List + Frame Viewer ── */}
+      <VideoListPanel
+        videos={videos}
+        selectedId={selectedVideoId || null}
+        onSelect={(id) => setSelectedVideoId(id)}
+        onRefresh={fetchVideoList}
+      />
+
+      {selectedVideoId && (
+        <section
+          className="panel"
+          style={{
+            marginBottom: 18,
+            padding: 0,
+            overflow: 'hidden',
+            height: '70vh',
+            border: '2px solid #166d86',
+          }}
+        >
+          <div
+            style={{
+              padding: '8px 16px',
+              background: '#166d86',
+              color: '#fff',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
+            <span style={{ fontWeight: 700, fontSize: 14 }}>
+              Frame Viewer — {videos.find((v) => v.id === selectedVideoId)?.filename || selectedVideoId}
+            </span>
+            <button
+              onClick={() => setSelectedVideoId('')}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#fff',
+                fontSize: 18,
+                cursor: 'pointer',
+                padding: '0 4px',
+              }}
+            >
+              ✕
+            </button>
+          </div>
+          <div style={{ height: 'calc(70vh - 36px)' }}>
+            <FrameViewer videoId={selectedVideoId} />
+          </div>
+        </section>
+      )}
+
+      {listError && (
+        <div className="alert" style={{ marginBottom: 18 }}>
+          {listError}
+        </div>
+      )}
 
       <section className="layout">
         <form className="panel controls" onSubmit={handleSubmit}>

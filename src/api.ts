@@ -3,8 +3,11 @@ import type {
   ApiEnvelope,
   ChunkInfo,
   ChunkStatusResponse,
+  HlsStatusResponse,
   InitiateUploadInput,
   ResumeUploadInput,
+  SeekResponse,
+  VideoListItem,
 } from './types';
 
 const baseURL = import.meta.env.VITE_CASE_SERVICE_URL ?? 'http://localhost:3000';
@@ -22,6 +25,8 @@ function isNetworkError(error: unknown): boolean {
 
 const unwrap = <T>(response: { data: ApiEnvelope<T> }): T => response.data.data;
 
+// ── Upload APIs (existing) ──
+
 export async function initiateUpload(input: InitiateUploadInput) {
   return unwrap(
     await caseApi.post<
@@ -34,7 +39,6 @@ export async function initiateUpload(input: InitiateUploadInput) {
     >('/video/initiate', input),
   );
 }
-
 
 export async function getChunkStatus(videoId: string) {
   return unwrap(
@@ -49,6 +53,32 @@ export async function resumeUpload(videoId: string, input: ResumeUploadInput) {
       input,
     ),
   );
+}
+
+// ── Video List API (new) ──
+
+export async function getVideoList(): Promise<VideoListItem[]> {
+  const res = await caseApi.get<ApiEnvelope<VideoListItem[]>>('/video/list');
+  return unwrap(res);
+}
+
+// ── Frame Viewer APIs (new) ──
+
+export async function getHlsStatus(videoId: string): Promise<HlsStatusResponse> {
+  const res = await caseApi.get<ApiEnvelope<HlsStatusResponse>>(`/video/${videoId}/hls/status`);
+  return unwrap(res);
+}
+
+export async function triggerRepackage(videoId: string): Promise<{ queued: boolean }> {
+  const res = await caseApi.post<ApiEnvelope<{ queued: boolean }>>(`/video/${videoId}/hls/repackage`);
+  return unwrap(res);
+}
+
+export async function seek(videoId: string, time: number): Promise<SeekResponse> {
+  const res = await caseApi.get<ApiEnvelope<SeekResponse>>(`/video/${videoId}/seek`, {
+    params: { time },
+  });
+  return unwrap(res);
 }
 
 export { isNetworkError };

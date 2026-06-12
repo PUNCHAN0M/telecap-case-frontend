@@ -1,3 +1,7 @@
+// ═════════════════════════════════════════════════════════════════
+// Upload Types (existing)
+// ═════════════════════════════════════════════════════════════════
+
 export type ChunkStatus = 'pending' | 'uploading' | 'uploaded' | 'processing' | 'done' | 'failed';
 export type UploadPhase = 'idle' | 'splitting' | 'initiating' | 'uploading' | 'paused' | 'completed' | 'cancelled' | 'error';
 export type UploadStep =
@@ -89,4 +93,63 @@ export interface SavedSession {
   mimeType: string;
   chunkDuration: number;
   createdAt: string;
+}
+
+// ═════════════════════════════════════════════════════════════════
+// Video List Type (new)
+// ═════════════════════════════════════════════════════════════════
+
+export interface VideoListItem {
+  id: string;
+  caseId: string;
+  filename?: string;
+  totalChunks: number;
+  completedChunks: number;
+  status: string;
+  mimeType?: string;
+  hlsReady: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ═════════════════════════════════════════════════════════════════
+// Frame Viewer Types (new)
+// ═════════════════════════════════════════════════════════════════
+
+export type ViewerPhase = 'loading' | 'hls' | 'chunks' | 'processing' | 'not_available' | 'error';
+
+export interface HlsStatusResponse {
+  type: 'hls';
+  status: 'ready' | 'processing' | 'not_available';
+  masterUrl?: string;
+  segmentDuration?: number;
+  totalDuration?: number;
+  message?: string;
+  fallback?: {
+    type: 'chunks';
+    chunks: ChunkFallbackItem[];
+  };
+}
+
+export interface ChunkFallbackItem {
+  chunkIndex: number;
+  startTime: number;
+  endTime: number;
+  url: string;
+}
+
+export interface SeekResponse {
+  time: number;
+  chunkIndex: number;
+  chunkStartTime: number;
+  chunkEndTime: number;
+  localTime: number;
+  hlsReady: boolean;
+  segmentIndex?: number;
+}
+
+export interface TimelineMarker {
+  time: number;
+  label: string;
+  color: string;
 }
