@@ -110,21 +110,44 @@ export const FrameViewer: React.FC<FrameViewerProps> = ({ videoId }) => {
             top: '16px',
             right: '16px',
             backgroundColor: 'rgba(0, 0, 0, 0.7)',
-            padding: '8px 12px',
-            borderRadius: '20px',
+            padding: '12px 16px',
+            borderRadius: '12px',
             display: 'flex',
-            alignItems: 'center',
+            flexDirection: 'column',
             gap: '8px',
-            fontSize: '12px',
+            fontSize: '13px',
             border: '1px solid #333',
             pointerEvents: 'none',
+            minWidth: '250px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
           }}>
-            <span style={{ animation: 'spin 2s linear infinite' }}>⏳</span>
-            <span>
-              กำลังประมวลผลวิดีโอคุณภาพสูง (HLS) 
-              {typeof state.repackageProgress === 'number' ? ` ${state.repackageProgress}%` : ''} 
-              {state.phase === 'chunks' ? ' - คุณสามารถรับชมล่วงหน้าได้' : ''}
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ animation: 'spin 2s linear infinite' }}>⏳</span>
+                <span style={{ fontWeight: 500 }}>กำลังปรับปรุงคุณภาพวิดีโอ...</span>
+              </div>
+              {typeof state.repackageProgress === 'number' && (
+                <span style={{ fontWeight: 'bold', color: '#4ade80' }}>{state.repackageProgress}%</span>
+              )}
+            </div>
+            
+            {/* Progress Bar */}
+            {typeof state.repackageProgress === 'number' && (
+              <div style={{ width: '100%', height: '6px', backgroundColor: '#333', borderRadius: '3px', overflow: 'hidden' }}>
+                <div style={{ 
+                  height: '100%', 
+                  width: `${state.repackageProgress}%`, 
+                  backgroundColor: '#4ade80',
+                  transition: 'width 0.5s ease-out'
+                }} />
+              </div>
+            )}
+            
+            {state.phase === 'chunks' && (
+              <div style={{ fontSize: '11px', color: '#aaa', marginTop: '2px' }}>
+                (คุณสามารถเริ่มรับชมวิดีโอล่วงหน้าได้เลย)
+              </div>
+            )}
           </div>
         )}
 
