@@ -125,6 +125,7 @@ export interface HlsStatusResponse {
   segmentDuration?: number;
   totalDuration?: number;
   message?: string;
+  repackageProgress?: number;
   fallback?: {
     type: 'chunks';
     chunks: ChunkFallbackItem[];

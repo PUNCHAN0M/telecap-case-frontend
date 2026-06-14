@@ -10,6 +10,8 @@ export interface VideoPlayerState {
   totalDuration: number;
   isPlaying: boolean;
   isBuffering: boolean;
+  isRepackaging?: boolean;
+  repackageProgress?: number;
   error: string | null;
   masterUrl?: string;
   fallbackChunks?: ChunkFallbackItem[];
@@ -27,6 +29,7 @@ export function useVideoPlayer(videoId: string) {
     totalDuration: 0,
     isPlaying: false,
     isBuffering: false,
+    isRepackaging: false,
     error: null,
   });
 
@@ -81,6 +84,8 @@ export function useVideoPlayer(videoId: string) {
             phase: 'chunks',
             fallbackChunks: status.fallback!.chunks,
             totalDuration,
+            isRepackaging: true,
+            repackageProgress: status.repackageProgress,
             error: null,
           }));
         } else if (status.status === 'processing') {
@@ -88,6 +93,8 @@ export function useVideoPlayer(videoId: string) {
             ...s,
             phase: 'processing',
             totalDuration,
+            isRepackaging: true,
+            repackageProgress: status.repackageProgress,
             error: null,
           }));
         } else if (status.status === 'not_available') {
@@ -163,9 +170,11 @@ export function useVideoPlayer(videoId: string) {
                  ...s,
                  fallbackChunks: status.fallback!.chunks,
                  totalDuration: newTotalDuration,
+                 isRepackaging: true,
+                 repackageProgress: status.repackageProgress,
                };
             }
-            return s;
+            return { ...s, isRepackaging: true, repackageProgress: status.repackageProgress };
           });
           timeoutId = window.setTimeout(poll, 10000);
         } else {

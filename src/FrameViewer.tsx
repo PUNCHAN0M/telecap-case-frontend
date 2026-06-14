@@ -103,6 +103,31 @@ export const FrameViewer: React.FC<FrameViewerProps> = ({ videoId }) => {
           </div>
         )}
 
+        {/* Repackaging Progress Indicator */}
+        {state.isRepackaging && (state.phase === 'chunks' || state.phase === 'processing') && (
+          <div style={{
+            position: 'absolute',
+            top: '16px',
+            right: '16px',
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            padding: '8px 12px',
+            borderRadius: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            fontSize: '12px',
+            border: '1px solid #333',
+            pointerEvents: 'none',
+          }}>
+            <span style={{ animation: 'spin 2s linear infinite' }}>⏳</span>
+            <span>
+              กำลังประมวลผลวิดีโอคุณภาพสูง (HLS) 
+              {typeof state.repackageProgress === 'number' ? ` ${state.repackageProgress}%` : ''} 
+              {state.phase === 'chunks' ? ' - คุณสามารถรับชมล่วงหน้าได้' : ''}
+            </span>
+          </div>
+        )}
+
         {/* Overlays */}
         {state.phase === 'loading' && (
           <div style={{
